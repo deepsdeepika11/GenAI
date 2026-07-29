@@ -22,6 +22,21 @@ def load_env_file(file_name=".env"):
 def get_config():
     load_env_file()
     cfg_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_KEY")
+
+    # Prefer environment variables (from local .env) but also support
+    # Streamlit secrets (deployed apps). Streamlit secrets are set in
+    # the Streamlit Community Cloud app settings and are accessible
+    # via `st.secrets`.
+    try:
+        # In the deployed Streamlit environment, users should add the key
+        # as an app secret named GEMINI_API_KEY (or GEMINI_KEY). Check
+        # `st.secrets` as a fallback.
+        if not cfg_api_key:
+            cfg_api_key = st.secrets.get("GEMINI_API_KEY") or st.secrets.get("GEMINI_KEY")
+    except Exception:
+        # If `st.secrets` is unavailable (e.g., running outside Streamlit), ignore.
+        pass
+
     return cfg_api_key, "gemini-3.1-flash-lite"
 
 
